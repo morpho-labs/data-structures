@@ -24,24 +24,23 @@ library HeapOrdering {
     /// @dev Only call this function when `_id` is in the `_heap` with value `_formerValue` or when `_id` is not in the `_heap` with `_formerValue` equal to 0.
     /// @param _heap The heap to modify.
     /// @param _id The address of the account to update.
-    /// @param _formerValue The former value of the account to update.
     /// @param _newValue The new value of the account to update.
     /// @param _maxSortedUsers The maximum size of the heap.
     function update(
         HeapArray storage _heap,
         address _id,
-        uint256 _formerValue,
         uint256 _newValue,
         uint256 _maxSortedUsers
     ) internal {
+        uint256 formerValue = getValueOf(_heap, _id);
         uint256 size = _heap.size;
         uint256 newSize = computeSize(size, _maxSortedUsers);
         if (size != newSize) _heap.size = newSize;
 
-        if (_formerValue != _newValue) {
-            if (_newValue == 0) remove(_heap, _id, _formerValue);
-            else if (_formerValue == 0) insert(_heap, _id, _newValue, _maxSortedUsers);
-            else if (_formerValue < _newValue) increase(_heap, _id, _newValue, _maxSortedUsers);
+        if (formerValue != _newValue) {
+            if (_newValue == 0) remove(_heap, _id, formerValue);
+            else if (formerValue == 0) insert(_heap, _id, _newValue, _maxSortedUsers);
+            else if (formerValue < _newValue) increase(_heap, _id, _newValue, _maxSortedUsers);
             else decrease(_heap, _id, _newValue);
         }
     }

@@ -46,14 +46,7 @@ contract Helper is Random {
         uint256 _max_sorted_users
     ) public {
         HeapOrdering.HeapArray storage heap = getCurrentHeap();
-        uint256 _formerValue;
-        uint256 rank = heap.ranks[_id];
-        if (rank == 0) {
-            _formerValue = 0;
-        } else {
-            _formerValue = heap.accounts[rank - 1].value;
-        }
-        HeapOrdering.update(heap, _id, _formerValue, _newValue, _max_sorted_users);
+        HeapOrdering.update(heap, _id, _newValue, _max_sorted_users);
     }
 
     function getSize() private view returns (uint256) {

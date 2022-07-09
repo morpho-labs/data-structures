@@ -19,12 +19,8 @@ contract TestHeapOrdering is DSTest {
 
     HeapOrdering.HeapArray internal heap;
 
-    function update(
-        address _id,
-        uint256 _formerValue,
-        uint256 _newValue
-    ) public {
-        heap.update(_id, _formerValue, _newValue, MAX_SORTED_USERS);
+    function update(address _id, uint256 _newValue) public {
+        heap.update(_id, _newValue, MAX_SORTED_USERS);
     }
 
     function setUp() public {
@@ -36,7 +32,7 @@ contract TestHeapOrdering is DSTest {
     }
 
     function testInsertOneSingleAccount() public {
-        update(accounts[0], 0, 1);
+        update(accounts[0], 1);
 
         assertEq(heap.size, 1);
         assertEq(heap.length(), 1);
@@ -48,19 +44,19 @@ contract TestHeapOrdering is DSTest {
     }
 
     function testShouldNotInsertAccountWithZeroValue() public {
-        update(accounts[0], 0, 0);
+        update(accounts[0], 0);
         assertEq(heap.size, 0);
         assertEq(heap.length(), 0);
     }
 
     function testShouldNotInsertZeroAddress() public {
         hevm.expectRevert(abi.encodeWithSignature("AddressIsZero()"));
-        update(address(0), 0, 10);
+        update(address(0), 10);
     }
 
     function testShouldInsertSeveralTimesTheSameAccount() public {
-        update(accounts[0], 0, 1);
-        update(accounts[0], 1, 2);
+        update(accounts[0], 1);
+        update(accounts[0], 2);
         assertEq(heap.size, 1);
         assertEq(heap.length(), 1);
         assertEq(heap.getValueOf(accounts[0]), 2);
@@ -71,8 +67,8 @@ contract TestHeapOrdering is DSTest {
     }
 
     function testShouldHaveTheRightOrder() public {
-        update(accounts[0], 0, 20);
-        update(accounts[1], 0, 40);
+        update(accounts[0], 20);
+        update(accounts[1], 40);
         assertEq(heap.size, 2);
         assertEq(heap.length(), 2);
         assertEq(heap.getHead(), accounts[1]);
@@ -82,8 +78,8 @@ contract TestHeapOrdering is DSTest {
     }
 
     function testShouldRemoveOneSingleAccount() public {
-        update(accounts[0], 0, 1);
-        update(accounts[0], 1, 0);
+        update(accounts[0], 1);
+        update(accounts[0], 0);
 
         assertEq(heap.size, 0);
         assertEq(heap.length(), 0);
@@ -95,8 +91,8 @@ contract TestHeapOrdering is DSTest {
     }
 
     function testShouldInsertTwoAccounts() public {
-        update(accounts[0], 0, 2);
-        update(accounts[1], 0, 1);
+        update(accounts[0], 2);
+        update(accounts[1], 1);
 
         assertEq(heap.size, 2);
         assertEq(heap.length(), 2);
@@ -111,9 +107,9 @@ contract TestHeapOrdering is DSTest {
     }
 
     function testShouldInsertThreeAccounts() public {
-        update(accounts[0], 0, 3);
-        update(accounts[1], 0, 2);
-        update(accounts[2], 0, 1);
+        update(accounts[0], 3);
+        update(accounts[1], 2);
+        update(accounts[2], 1);
 
         assertEq(heap.getHead(), accounts[0]);
         assertEq(heap.getTail(), accounts[2]);
@@ -129,9 +125,9 @@ contract TestHeapOrdering is DSTest {
     }
 
     function testShouldRemoveOneAccountOverTwo() public {
-        update(accounts[0], 0, 2);
-        update(accounts[1], 0, 1);
-        update(accounts[0], 2, 0);
+        update(accounts[0], 2);
+        update(accounts[1], 1);
+        update(accounts[0], 0);
 
         assertEq(heap.size, 1);
         assertEq(heap.length(), 1);
@@ -144,10 +140,10 @@ contract TestHeapOrdering is DSTest {
     }
 
     function testShouldRemoveBothAccounts() public {
-        update(accounts[0], 0, 2);
-        update(accounts[1], 0, 1);
-        update(accounts[0], 2, 0);
-        update(accounts[1], 1, 0);
+        update(accounts[0], 2);
+        update(accounts[1], 1);
+        update(accounts[0], 0);
+        update(accounts[1], 0);
 
         assertEq(heap.size, 0);
         assertEq(heap.length(), 0);
@@ -156,15 +152,15 @@ contract TestHeapOrdering is DSTest {
     }
 
     function testShouldInsertThreeAccountsAndRemoveThem() public {
-        update(accounts[0], 0, 3);
-        update(accounts[1], 0, 2);
-        update(accounts[2], 0, 1);
+        update(accounts[0], 3);
+        update(accounts[1], 2);
+        update(accounts[2], 1);
 
         assertEq(heap.getHead(), accounts[0]);
         assertEq(heap.getTail(), accounts[2]);
 
         // Remove account 0.
-        update(accounts[0], 3, 0);
+        update(accounts[0], 0);
         assertEq(heap.getHead(), accounts[1]);
         assertEq(heap.getTail(), accounts[2]);
         assertEq(heap.getPrev(accounts[1]), ADDR_ZERO);
@@ -174,21 +170,21 @@ contract TestHeapOrdering is DSTest {
         assertEq(heap.getNext(accounts[2]), ADDR_ZERO);
 
         // Remove account 1.
-        update(accounts[1], 2, 0);
+        update(accounts[1], 0);
         assertEq(heap.getHead(), accounts[2]);
         assertEq(heap.getTail(), accounts[2]);
         assertEq(heap.getPrev(accounts[2]), ADDR_ZERO);
         assertEq(heap.getNext(accounts[2]), ADDR_ZERO);
 
         // Remove account 2.
-        update(accounts[2], 1, 0);
+        update(accounts[2], 0);
         assertEq(heap.getHead(), ADDR_ZERO);
         assertEq(heap.getTail(), ADDR_ZERO);
     }
 
     function testShouldInsertAccountsAllSorted() public {
         for (uint256 i = 0; i < accounts.length; i++) {
-            update(accounts[i], 0, NB_ACCOUNTS - i);
+            update(accounts[i], NB_ACCOUNTS - i);
         }
 
         assertEq(heap.size, NB_ACCOUNTS / 2);
@@ -211,11 +207,11 @@ contract TestHeapOrdering is DSTest {
 
     function testShouldRemoveAllSortedAccount() public {
         for (uint256 i = 0; i < accounts.length; i++) {
-            update(accounts[i], 0, NB_ACCOUNTS - i);
+            update(accounts[i], NB_ACCOUNTS - i);
         }
 
         for (uint256 i = 0; i < accounts.length; i++) {
-            update(accounts[i], NB_ACCOUNTS - i, 0);
+            update(accounts[i], 0);
         }
 
         assertEq(heap.getHead(), ADDR_ZERO);
@@ -227,7 +223,7 @@ contract TestHeapOrdering is DSTest {
 
         // Add first 10 accounts with decreasing value.
         for (uint256 i = 0; i < 10; i++) {
-            update(accounts[i], 0, value - i);
+            update(accounts[i], value - i);
         }
 
         assertEq(heap.getHead(), accounts[0]);
@@ -247,7 +243,7 @@ contract TestHeapOrdering is DSTest {
 
         // Add last 10 accounts at the same value.
         for (uint256 i = NB_ACCOUNTS - 10; i < NB_ACCOUNTS; i++) {
-            update(accounts[i], 0, 10);
+            update(accounts[i], 10);
         }
 
         assertEq(heap.getHead(), accounts[0]);
@@ -267,16 +263,16 @@ contract TestHeapOrdering is DSTest {
     }
 
     function testComputeSizeSmall() public {
-        update(accounts[0], 0, 10);
-        update(accounts[1], 0, 20);
-        update(accounts[2], 0, 30);
-        update(accounts[3], 0, 40);
-        update(accounts[4], 0, 50);
-        update(accounts[5], 0, 60);
+        update(accounts[0], 10);
+        update(accounts[1], 20);
+        update(accounts[2], 30);
+        update(accounts[3], 40);
+        update(accounts[4], 50);
+        update(accounts[5], 60);
 
         MAX_SORTED_USERS = 2;
 
-        update(accounts[5], 60, 25);
+        update(accounts[5], 25);
         assertEq(heap.size, 1);
     }
 
@@ -284,22 +280,22 @@ contract TestHeapOrdering is DSTest {
         MAX_SORTED_USERS = 30;
 
         for (uint256 i = 0; i < NB_ACCOUNTS; i++) {
-            update(accounts[i], 0, i + 1);
+            update(accounts[i], i + 1);
         }
         // Test that the size has been increased to MAX_SORTED_USERS/2 and increased again.
         assertEq(heap.size, 20);
     }
 
     function testShiftUpLeft() public {
-        update(accounts[0], 0, 4);
-        update(accounts[1], 0, 3);
-        update(accounts[2], 0, 2);
+        update(accounts[0], 4);
+        update(accounts[1], 3);
+        update(accounts[2], 2);
 
         assertEq(heap.accounts[0].value, 4);
         assertEq(heap.accounts[1].value, 3);
         assertEq(heap.accounts[2].value, 2);
 
-        update(accounts[2], 2, 10);
+        update(accounts[2], 10);
 
         assertEq(heap.accounts[0].value, 10);
         assertEq(heap.accounts[1].value, 3);
@@ -307,11 +303,11 @@ contract TestHeapOrdering is DSTest {
     }
 
     function testShiftUpRight() public {
-        update(accounts[0], 0, 4);
-        update(accounts[1], 0, 3);
-        update(accounts[2], 0, 2);
+        update(accounts[0], 4);
+        update(accounts[1], 3);
+        update(accounts[2], 2);
 
-        update(accounts[1], 3, 10);
+        update(accounts[1], 10);
 
         assertEq(heap.accounts[0].value, 10);
         assertEq(heap.accounts[1].value, 4);
@@ -319,13 +315,13 @@ contract TestHeapOrdering is DSTest {
     }
 
     function testShiftUpBig() public {
-        update(accounts[0], 0, 20);
-        update(accounts[1], 0, 15);
-        update(accounts[2], 0, 18);
-        update(accounts[3], 0, 11);
-        update(accounts[4], 0, 12);
-        update(accounts[5], 0, 17);
-        update(accounts[6], 0, 16);
+        update(accounts[0], 20);
+        update(accounts[1], 15);
+        update(accounts[2], 18);
+        update(accounts[3], 11);
+        update(accounts[4], 12);
+        update(accounts[5], 17);
+        update(accounts[6], 16);
 
         assertEq(heap.accounts[0].value, 20);
         assertEq(heap.accounts[1].value, 15);
@@ -335,7 +331,7 @@ contract TestHeapOrdering is DSTest {
         assertEq(heap.accounts[5].value, 17);
         assertEq(heap.accounts[6].value, 16);
 
-        update(accounts[4], 12, 30);
+        update(accounts[4], 30);
 
         assertEq(heap.accounts[4].value, 15);
         assertEq(heap.accounts[1].value, 20);
@@ -343,11 +339,11 @@ contract TestHeapOrdering is DSTest {
     }
 
     function testShiftDownRight() public {
-        update(accounts[0], 0, 4);
-        update(accounts[1], 0, 3);
-        update(accounts[2], 0, 2);
+        update(accounts[0], 4);
+        update(accounts[1], 3);
+        update(accounts[2], 2);
 
-        update(accounts[0], 4, 1);
+        update(accounts[0], 1);
 
         assertEq(heap.accounts[0].value, 3);
         assertEq(heap.accounts[1].value, 1);
@@ -355,11 +351,11 @@ contract TestHeapOrdering is DSTest {
     }
 
     function testShiftDownLeft() public {
-        update(accounts[0], 0, 4);
-        update(accounts[1], 0, 2);
-        update(accounts[2], 0, 3);
+        update(accounts[0], 4);
+        update(accounts[1], 2);
+        update(accounts[2], 3);
 
-        update(accounts[0], 4, 1);
+        update(accounts[0], 1);
 
         assertEq(heap.accounts[0].value, 3);
         assertEq(heap.accounts[1].value, 2);
@@ -367,15 +363,15 @@ contract TestHeapOrdering is DSTest {
     }
 
     function testShiftDownBig() public {
-        update(accounts[0], 0, 20);
-        update(accounts[1], 0, 15);
-        update(accounts[2], 0, 18);
-        update(accounts[3], 0, 11);
-        update(accounts[4], 0, 12);
-        update(accounts[5], 0, 17);
-        update(accounts[6], 0, 16);
+        update(accounts[0], 20);
+        update(accounts[1], 15);
+        update(accounts[2], 18);
+        update(accounts[3], 11);
+        update(accounts[4], 12);
+        update(accounts[5], 17);
+        update(accounts[6], 16);
 
-        update(accounts[0], 20, 10);
+        update(accounts[0], 10);
 
         assertEq(heap.accounts[0].value, 18);
         assertEq(heap.accounts[2].value, 17);
@@ -383,13 +379,13 @@ contract TestHeapOrdering is DSTest {
     }
 
     function testSouldInsertSorted() public {
-        update(accounts[0], 0, 1);
-        update(accounts[1], 0, 2);
-        update(accounts[2], 0, 3);
-        update(accounts[3], 0, 4);
-        update(accounts[4], 0, 5);
-        update(accounts[5], 0, 6);
-        update(accounts[6], 0, 7);
+        update(accounts[0], 1);
+        update(accounts[1], 2);
+        update(accounts[2], 3);
+        update(accounts[3], 4);
+        update(accounts[4], 5);
+        update(accounts[5], 6);
+        update(accounts[6], 7);
 
         assertEq(heap.accounts[0].value, 7);
         assertEq(heap.accounts[1].value, 4);
@@ -401,36 +397,36 @@ contract TestHeapOrdering is DSTest {
     }
 
     function testInsertLast() public {
-        for (uint256 i; i < 10; i++) update(accounts[i], 0, NB_ACCOUNTS - i);
+        for (uint256 i; i < 10; i++) update(accounts[i], NB_ACCOUNTS - i);
 
-        for (uint256 i = 10; i < 15; i++) update(accounts[i], 0, i - 9);
+        for (uint256 i = 10; i < 15; i++) update(accounts[i], i - 9);
 
         for (uint256 i = 10; i < 15; i++) assertLe(heap.accounts[i].value, 10);
     }
 
     function testInsertWrap() public {
         MAX_SORTED_USERS = 20;
-        for (uint256 i = 0; i < 20; i++) update(accounts[i], 0, NB_ACCOUNTS - i);
+        for (uint256 i = 0; i < 20; i++) update(accounts[i], NB_ACCOUNTS - i);
 
-        update(accounts[20], 0, 1);
+        update(accounts[20], 1);
 
         assertEq(heap.accounts[10].value, 1);
     }
 
     function testDecreaseRankChanges() public {
         MAX_SORTED_USERS = 4;
-        for (uint256 i = 0; i < 16; i++) update(accounts[i], 0, 20 - i);
+        for (uint256 i = 0; i < 16; i++) update(accounts[i], 20 - i);
 
         uint256 rank5Before = heap.ranks[accounts[5]];
         uint256 rank0Before = heap.ranks[accounts[0]];
 
-        update(accounts[5], 15, 1);
+        update(accounts[5], 1);
 
         uint256 rank5After = heap.ranks[accounts[5]];
 
         assertEq(rank5Before, rank5After);
 
-        update(accounts[0], 20, 2);
+        update(accounts[0], 2);
 
         uint256 rank0After = heap.ranks[accounts[0]];
 
@@ -438,11 +434,11 @@ contract TestHeapOrdering is DSTest {
     }
 
     function testIncreaseRankChange() public {
-        for (uint256 i = 0; i < 20; i++) update(accounts[i], 0, 20 - i);
+        for (uint256 i = 0; i < 20; i++) update(accounts[i], 20 - i);
 
         MAX_SORTED_USERS = 10;
 
-        update(accounts[17], 20 - 17, 5);
+        update(accounts[17], 5);
 
         uint256 rank17After = heap.ranks[accounts[17]];
 
@@ -450,11 +446,11 @@ contract TestHeapOrdering is DSTest {
     }
 
     function testIncreaseRankChangeShiftUp() public {
-        for (uint256 i = 0; i < 20; i++) update(accounts[i], 0, 20 - i);
+        for (uint256 i = 0; i < 20; i++) update(accounts[i], 20 - i);
 
         MAX_SORTED_USERS = 10;
 
-        update(accounts[17], 20 - 17, 40);
+        update(accounts[17], 40);
 
         uint256 rank17After = heap.ranks[accounts[17]];
 
@@ -462,13 +458,13 @@ contract TestHeapOrdering is DSTest {
     }
 
     function testRemoveLast() public {
-        update(accounts[0], 0, 4);
-        update(accounts[1], 0, 2);
-        update(accounts[2], 0, 3);
+        update(accounts[0], 4);
+        update(accounts[1], 2);
+        update(accounts[2], 3);
 
         uint256 sizeBefore = heap.size;
 
-        update(accounts[2], 3, 0);
+        update(accounts[2], 0);
 
         uint256 sizeAfter = heap.size;
 
@@ -477,20 +473,20 @@ contract TestHeapOrdering is DSTest {
     }
 
     function testRemoveShiftDown() public {
-        for (uint256 i = 0; i < 20; i++) update(accounts[i], 0, NB_ACCOUNTS - i);
+        for (uint256 i = 0; i < 20; i++) update(accounts[i], NB_ACCOUNTS - i);
 
-        update(accounts[5], NB_ACCOUNTS - 5, 0);
+        update(accounts[5], 0);
 
         assertEq(heap.accounts[5].value, NB_ACCOUNTS - 2 * (5 + 1) + 1);
     }
 
     function testRemoveShiftUp() public {
-        update(accounts[0], 0, 40);
-        update(accounts[1], 0, 10);
-        update(accounts[2], 0, 30);
-        update(accounts[3], 0, 8);
-        update(accounts[4], 0, 7);
-        update(accounts[5], 0, 25);
+        update(accounts[0], 40);
+        update(accounts[1], 10);
+        update(accounts[2], 30);
+        update(accounts[3], 8);
+        update(accounts[4], 7);
+        update(accounts[5], 25);
 
         assertEq(heap.accounts[0].value, 40);
         assertEq(heap.accounts[1].value, 10);
@@ -499,7 +495,7 @@ contract TestHeapOrdering is DSTest {
         assertEq(heap.accounts[4].value, 7);
         assertEq(heap.accounts[5].value, 25);
 
-        update(accounts[3], 10, 0);
+        update(accounts[3], 0);
 
         assertEq(heap.accounts[1].value, 25);
     }

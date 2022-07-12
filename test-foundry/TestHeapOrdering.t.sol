@@ -3,7 +3,6 @@ pragma solidity ^0.8.0;
 
 import "ds-test/test.sol";
 import "forge-std/Vm.sol";
-import "forge-std/console.sol";
 
 import "@contracts/HeapOrdering.sol";
 
@@ -502,5 +501,49 @@ contract TestHeapOrdering is DSTest {
         update(accounts[3], 10, 0);
 
         assertEq(heap.accounts[1].value, 25);
+    }
+
+    function testInsertNoSwap() public {
+        update(accounts[0], 0, 40);
+        update(accounts[1], 0, 30);
+        update(accounts[2], 0, 20);
+
+        // Insert does a swap with the same ranks.
+        update(accounts[3], 0, 10);
+        assertEq(heap.ranks[accounts[0]], 1);
+        assertEq(heap.ranks[accounts[1]], 2);
+        assertEq(heap.ranks[accounts[2]], 3);
+        assertEq(heap.ranks[accounts[3]], 4);
+    }
+
+    function testIncreaseAndRemoveNoSwap() public {
+        MAX_SORTED_USERS = 4;
+        update(accounts[0], 0, 60);
+        update(accounts[1], 0, 50);
+        update(accounts[2], 0, 40);
+        update(accounts[3], 0, 30);
+
+        // Increase does a swap with the same ranks.
+        update(accounts[2], 40, 45);
+        assertEq(heap.ranks[accounts[0]], 1);
+        assertEq(heap.ranks[accounts[1]], 2);
+        assertEq(heap.ranks[accounts[2]], 3);
+        assertEq(heap.ranks[accounts[3]], 4);
+
+        // Remove does a swap with the same ranks.
+        update(accounts[3], 30, 0);
+        assertEq(heap.ranks[accounts[0]], 1);
+        assertEq(heap.ranks[accounts[1]], 2);
+        assertEq(heap.ranks[accounts[2]], 3);
+    }
+
+    function testOverflowNewValue() public {
+        hevm.expectRevert("SafeCast: value doesn't fit in 96 bits");
+        update(accounts[0], 0, uint256(type(uint128).max));
+    }
+
+    function testOverflowFormerValue() public {
+        hevm.expectRevert("SafeCast: value doesn't fit in 96 bits");
+        update(accounts[0], uint256(type(uint128).max), 0);
     }
 }

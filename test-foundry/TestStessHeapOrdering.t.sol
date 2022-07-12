@@ -14,9 +14,9 @@ contract HeapStorage {
     function setUp() public {
         for (uint256 i = 0; i < TESTED_SIZE; i++) {
             address id = address(uint160(i + 1));
-            heap.accounts.push(HeapOrdering.Account(id, TESTED_SIZE - i));
+            heap.accounts.push(HeapOrdering.Account(id, uint96(TESTED_SIZE - i)));
             heap.ranks[id] = heap.accounts.length;
-            heap.size = uint96(MAX_SORTED_USERS);
+            heap.size = MAX_SORTED_USERS;
         }
     }
 

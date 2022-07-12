@@ -13,11 +13,7 @@ Then, run `make`.
 
 Run `make test`.
 
-For the `RedBlackBinaryTree`, you can run the tests with hardhat.
-
-```
-yarn test
-```
+For the `RedBlackBinaryTree`, you can run the tests with hardhat with `yarn test`.
 
 # Data structures
 

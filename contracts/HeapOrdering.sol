@@ -12,12 +12,12 @@ library HeapOrdering {
     struct HeapArray {
         Account[] accounts; // All the accounts.
         uint256 size; // The size of the heap portion of the structure, should be less than accounts length, the rest is an unordered array.
-        mapping(address => uint256) ranks; // A mapping from an address to a rank in accounts. Beware: ranks are shifted by one compared to indexes, so the first rank is 1 and not 0.
+        mapping(address => uint256) indexes; // A mapping from an address to an index in accounts.
     }
 
     /// CONSTANTS ///
 
-    uint256 private constant ROOT = 1;
+    uint256 private constant ROOT = 0;
 
     /// ERRORS ///
 
@@ -67,118 +67,93 @@ library HeapOrdering {
         return _size;
     }
 
-    /// @notice Returns the account of rank `_rank`.
-    /// @dev The first rank is 1 and the last one is length of the array.
-    /// @dev Only call this function with positive numbers.
-    /// @param _heap The heap to search in.
-    /// @param _rank The rank of the account.
-    /// @return The account of rank `_rank`.
-    function getAccount(HeapArray storage _heap, uint256 _rank)
-        private
-        view
-        returns (Account storage)
-    {
-        return _heap.accounts[_rank - 1];
-    }
-
-    /// @notice Sets the value at `_rank` in the `_heap` to be `_newValue`.
+    /// @notice Sets `_index` in the `_heap` to be `_account`.
     /// @dev The heap may lose its invariant about the order of the values stored.
     /// @dev Only call this function with a rank within array's bounds.
     /// @param _heap The heap to modify.
-    /// @param _rank The rank of the account in the heap to be set.
-    /// @param _newValue The new value to set the `_rank` to.
-    function setAccountValue(
-        HeapArray storage _heap,
-        uint256 _rank,
-        uint96 _newValue
-    ) private {
-        _heap.accounts[_rank - 1].value = _newValue;
-    }
-
-    /// @notice Sets `_rank` in the `_heap` to be `_account`.
-    /// @dev The heap may lose its invariant about the order of the values stored.
-    /// @dev Only call this function with a rank within array's bounds.
-    /// @param _heap The heap to modify.
-    /// @param _rank The rank of the account in the heap to be set.
+    /// @param _index The rank of the account in the heap to be set.
     /// @param _account The account to set the `_rank` to.
     function setAccount(
         HeapArray storage _heap,
-        uint256 _rank,
+        uint256 _index,
         Account memory _account
     ) private {
-        _heap.accounts[_rank - 1] = _account;
-        _heap.ranks[_account.id] = _rank;
+        _heap.accounts[_index] = _account;
+        _heap.indexes[_account.id] = _index;
     }
 
     /// @notice Swaps two accounts in the `_heap`.
     /// @dev The heap may lose its invariant about the order of the values stored.
-    /// @dev Only call this function with ranks within array's bounds.
+    /// @dev Only call this function with indexes within array's bounds.
     /// @param _heap The heap to modify.
-    /// @param _rank1 The rank of the first account in the heap.
-    /// @param _rank2 The rank of the second account in the heap.
+    /// @param _index1 The index of the first account in the heap.
+    /// @param _index2 The index of the second account in the heap.
     function swap(
         HeapArray storage _heap,
-        uint256 _rank1,
-        uint256 _rank2
+        uint256 _index1,
+        uint256 _index2
     ) private {
-        if (_rank1 == _rank2) return;
-        Account memory accountOldRank1 = getAccount(_heap, _rank1);
-        Account memory accountOldRank2 = getAccount(_heap, _rank2);
-        setAccount(_heap, _rank1, accountOldRank2);
-        setAccount(_heap, _rank2, accountOldRank1);
+        if (_index1 == _index2) return;
+        Account memory accountOldIndex1 = _heap.accounts[_index1];
+        Account memory accountOldIndex2 = _heap.accounts[_index2];
+        setAccount(_heap, _index1, accountOldIndex2);
+        setAccount(_heap, _index2, accountOldIndex1);
     }
 
     /// @notice Moves an account up the heap until its value is smaller than the one of its parent.
-    /// @dev This functions restores the invariant about the order of the values stored when the account at `_rank` is the only one with value greater than what it should be.
+    /// @dev This functions restores the invariant about the order of the values stored when the account at `_index` is the only one with value greater than what it should be.
     /// @param _heap The heap to modify.
-    /// @param _rank The rank of the account to move.
-    function shiftUp(HeapArray storage _heap, uint256 _rank) private {
-        Account memory accountToShift = getAccount(_heap, _rank);
+    /// @param _index The index of the account to move.
+    function shiftUp(HeapArray storage _heap, uint256 _index) private {
+        Account memory accountToShift = _heap.accounts[_index];
         uint256 valueToShift = accountToShift.value;
         Account memory parentAccount;
         while (
-            _rank > ROOT && valueToShift > (parentAccount = getAccount(_heap, _rank >> 1)).value
+            _index > ROOT &&
+            valueToShift > (parentAccount = _heap.accounts[(_index - 1) >> 1]).value
         ) {
-            setAccount(_heap, _rank, parentAccount);
-            _rank >>= 1;
+            setAccount(_heap, _index, parentAccount);
+            _index = (_index - 1) >> 1;
         }
-        setAccount(_heap, _rank, accountToShift);
+        setAccount(_heap, _index, accountToShift);
     }
 
     /// @notice Moves an account down the heap until its value is greater than the ones of its children.
-    /// @dev This functions restores the invariant about the order of the values stored when the account at `_rank` is the only one with value smaller than what it should be.
+    /// @dev This functions restores the invariant about the order of the values stored when the account at `_index` is the only one with value smaller than what it should be.
     /// @param _heap The heap to modify.
-    /// @param _rank The rank of the account to move.
-    function shiftDown(HeapArray storage _heap, uint256 _rank) private {
+    /// @param _index The index of the account to move.
+    function shiftDown(HeapArray storage _heap, uint256 _index) private {
         uint256 size = _heap.size;
-        Account memory accountToShift = getAccount(_heap, _rank);
+        Account memory accountToShift = _heap.accounts[_index];
         uint256 valueToShift = accountToShift.value;
         Account memory childToSwap;
         Account memory rightChild;
-        uint256 childRank = _rank << 1;
-        // At this point, childRank (resp. childRank+1) is the rank of the left (resp. right) child.
+        uint256 childIndex = (_index << 1) + 1;
+        uint256 rightChildIndex;
+        // At this point, childIndex (resp. childIndex+1) is the index of the left (resp. right) child.
 
-        while (childRank <= size) {
-            childToSwap = getAccount(_heap, childRank);
+        while (childIndex < size) {
+            childToSwap = _heap.accounts[childIndex];
 
             // Find the child with largest value.
-            if (childRank < size) {
-                rightChild = getAccount(_heap, childRank + 1);
+            unchecked {
+                rightChildIndex = childIndex + 1; // This cannot overflow because childIndex < size.
+            }
+            if (rightChildIndex < size) {
+                rightChild = _heap.accounts[rightChildIndex];
                 if (rightChild.value > childToSwap.value) {
-                    unchecked {
-                        ++childRank; // This cannot overflow because childRank < size.
-                    }
                     childToSwap = rightChild;
+                    childIndex = rightChildIndex;
                 }
             }
 
             if (childToSwap.value > valueToShift) {
-                setAccount(_heap, _rank, childToSwap);
-                _rank = childRank;
-                childRank <<= 1;
+                setAccount(_heap, _index, childToSwap);
+                _index = childIndex;
+                childIndex = (childIndex << 1) + 1;
             } else break;
         }
-        setAccount(_heap, _rank, accountToShift);
+        setAccount(_heap, _index, accountToShift);
     }
 
     /// @notice Inserts an account in the `_heap`.
@@ -198,15 +173,15 @@ library HeapOrdering {
         if (_id == address(0)) revert AddressIsZero();
 
         // Put the account at the end of accounts.
-        _heap.accounts.push(Account(_id, _value));
         uint256 accountsLength = _heap.accounts.length;
-        _heap.ranks[_id] = accountsLength;
+        _heap.accounts.push(Account(_id, _value));
+        _heap.indexes[_id] = accountsLength;
 
         // Move the account at the end of the heap and restore the invariant.
-        uint256 newSize = _heap.size + 1;
-        swap(_heap, newSize, accountsLength);
-        shiftUp(_heap, newSize);
-        _heap.size = computeSize(newSize, _maxSortedUsers);
+        uint256 size = _heap.size;
+        swap(_heap, size, accountsLength);
+        shiftUp(_heap, size);
+        _heap.size = computeSize(size + 1, _maxSortedUsers);
     }
 
     /// @notice Decreases the amount of an account in the `_heap`.
@@ -219,11 +194,11 @@ library HeapOrdering {
         address _id,
         uint96 _newValue
     ) private {
-        uint256 rank = _heap.ranks[_id];
-        setAccountValue(_heap, rank, _newValue);
+        uint256 index = _heap.indexes[_id];
+        _heap.accounts[index].value = _newValue;
 
         // We only need to restore the invariant if the account is a node in the heap
-        if (rank <= _heap.size >> 1) shiftDown(_heap, rank);
+        if (index < _heap.size >> 1) shiftDown(_heap, index);
     }
 
     /// @notice Increases the amount of an account in the `_heap`.
@@ -238,15 +213,15 @@ library HeapOrdering {
         uint96 _newValue,
         uint256 _maxSortedUsers
     ) private {
-        uint256 rank = _heap.ranks[_id];
-        setAccountValue(_heap, rank, _newValue);
-        uint256 nextSize = _heap.size + 1;
+        uint256 index = _heap.indexes[_id];
+        _heap.accounts[index].value = _newValue;
+        uint256 size = _heap.size;
 
-        if (rank < nextSize) shiftUp(_heap, rank);
+        if (index < size) shiftUp(_heap, index);
         else {
-            swap(_heap, nextSize, rank);
-            shiftUp(_heap, nextSize);
-            _heap.size = computeSize(nextSize, _maxSortedUsers);
+            swap(_heap, size, index);
+            shiftUp(_heap, size);
+            _heap.size = computeSize(size + 1, _maxSortedUsers);
         }
     }
 
@@ -260,19 +235,19 @@ library HeapOrdering {
         address _id,
         uint96 _removedValue
     ) private {
-        uint256 rank = _heap.ranks[_id];
+        uint256 index = _heap.indexes[_id];
         uint256 accountsLength = _heap.accounts.length;
 
         // Swap the last account and the account to remove, then pop it.
-        swap(_heap, rank, accountsLength);
+        swap(_heap, index, accountsLength - 1);
         if (_heap.size == accountsLength) _heap.size--;
         _heap.accounts.pop();
-        delete _heap.ranks[_id];
+        delete _heap.indexes[_id];
 
         // If the swapped account is in the heap, restore the invariant: its value can be smaller or larger than the removed value.
-        if (rank <= _heap.size) {
-            if (_removedValue > getAccount(_heap, rank).value) shiftDown(_heap, rank);
-            else shiftUp(_heap, rank);
+        if (index < _heap.size) {
+            if (_removedValue > _heap.accounts[index].value) shiftDown(_heap, index);
+            else shiftUp(_heap, index);
         }
     }
 
@@ -290,16 +265,18 @@ library HeapOrdering {
     /// @param _id The address of the account.
     /// @return The value of the account.
     function getValueOf(HeapArray storage _heap, address _id) internal view returns (uint256) {
-        uint256 rank = _heap.ranks[_id];
-        if (rank == 0) return 0;
-        else return getAccount(_heap, rank).value;
+        uint256 index = _heap.indexes[_id];
+        if (index >= _heap.accounts.length) return 0;
+        Account memory account = _heap.accounts[index];
+        if (account.id != _id) return 0;
+        else return account.value;
     }
 
     /// @notice Returns the address at the head of the `_heap`.
     /// @param _heap The heap to get the head.
     /// @return The address of the head.
     function getHead(HeapArray storage _heap) internal view returns (address) {
-        if (_heap.accounts.length > 0) return getAccount(_heap, 1).id;
+        if (_heap.accounts.length > 0) return _heap.accounts[0].id;
         else return address(0);
     }
 
@@ -307,7 +284,8 @@ library HeapOrdering {
     /// @param _heap The heap to get the tail.
     /// @return The address of the tail.
     function getTail(HeapArray storage _heap) internal view returns (address) {
-        if (_heap.accounts.length > 0) return getAccount(_heap, _heap.accounts.length).id;
+        uint256 accountsLength = _heap.accounts.length;
+        if (accountsLength > 0) return _heap.accounts[accountsLength - 1].id;
         else return address(0);
     }
 
@@ -317,8 +295,8 @@ library HeapOrdering {
     /// @param _id The address of the account.
     /// @return The address of the previous account.
     function getPrev(HeapArray storage _heap, address _id) internal view returns (address) {
-        uint256 rank = _heap.ranks[_id];
-        if (rank > ROOT) return getAccount(_heap, rank - 1).id;
+        uint256 index = _heap.indexes[_id];
+        if (index > ROOT) return _heap.accounts[index - 1].id;
         else return address(0);
     }
 
@@ -328,8 +306,9 @@ library HeapOrdering {
     /// @param _id The address of the account.
     /// @return The address of the next account.
     function getNext(HeapArray storage _heap, address _id) internal view returns (address) {
-        uint256 rank = _heap.ranks[_id];
-        if (rank < _heap.accounts.length) return getAccount(_heap, rank + 1).id;
-        else return address(0);
+        uint256 index = _heap.indexes[_id];
+        if (index + 1 >= _heap.accounts.length || _heap.accounts[index].id != _id)
+            return address(0);
+        else return _heap.accounts[index + 1].id;
     }
 }

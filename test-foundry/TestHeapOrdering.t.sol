@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 import "ds-test/test.sol";
 import "forge-std/Vm.sol";
+import "forge-std/console.sol";
 
 import "@contracts/HeapOrdering.sol";
 
@@ -34,6 +35,16 @@ contract TestHeapOrdering is DSTest {
         }
     }
 
+    function testEmpty() public {
+        assertEq(heap.size, 0);
+        assertEq(heap.length(), 0);
+        assertEq(heap.getValueOf(accounts[0]), 0);
+        assertEq(heap.getHead(), ADDR_ZERO);
+        assertEq(heap.getTail(), ADDR_ZERO);
+        assertEq(heap.getPrev(accounts[0]), ADDR_ZERO);
+        assertEq(heap.getNext(accounts[0]), ADDR_ZERO);
+    }
+
     function testInsertOneSingleAccount() public {
         update(accounts[0], 0, 1);
 
@@ -44,6 +55,8 @@ contract TestHeapOrdering is DSTest {
         assertEq(heap.getTail(), accounts[0]);
         assertEq(heap.getPrev(accounts[0]), ADDR_ZERO);
         assertEq(heap.getNext(accounts[0]), ADDR_ZERO);
+
+        assertEq(heap.getValueOf(accounts[1]), 0);
     }
 
     function testShouldNotInsertAccountWithZeroValue() public {
@@ -107,6 +120,9 @@ contract TestHeapOrdering is DSTest {
         assertEq(heap.getNext(accounts[0]), accounts[1]);
         assertEq(heap.getPrev(accounts[1]), accounts[0]);
         assertEq(heap.getNext(accounts[1]), ADDR_ZERO);
+
+        assertEq(heap.getNext(accounts[2]), ADDR_ZERO);
+        assertEq(heap.getPrev(accounts[2]), ADDR_ZERO);
     }
 
     function testShouldInsertThreeAccounts() public {
@@ -420,20 +436,20 @@ contract TestHeapOrdering is DSTest {
         MAX_SORTED_USERS = 4;
         for (uint256 i = 0; i < 16; i++) update(accounts[i], 0, 20 - i);
 
-        uint256 rank5Before = heap.ranks[accounts[5]];
-        uint256 rank0Before = heap.ranks[accounts[0]];
+        uint256 index5Before = heap.indexes[accounts[5]];
+        uint256 index0Before = heap.indexes[accounts[0]];
 
         update(accounts[5], 15, 1);
 
-        uint256 rank5After = heap.ranks[accounts[5]];
+        uint256 index5After = heap.indexes[accounts[5]];
 
-        assertEq(rank5Before, rank5After);
+        assertEq(index5Before, index5After);
 
         update(accounts[0], 20, 2);
 
-        uint256 rank0After = heap.ranks[accounts[0]];
+        uint256 index0After = heap.indexes[accounts[0]];
 
-        assertGt(rank0After, rank0Before);
+        assertGt(index0After, index0Before);
     }
 
     function testIncreaseRankChange() public {
@@ -443,9 +459,9 @@ contract TestHeapOrdering is DSTest {
 
         update(accounts[17], 20 - 17, 5);
 
-        uint256 rank17After = heap.ranks[accounts[17]];
+        uint256 index17After = heap.indexes[accounts[17]];
 
-        assertEq(rank17After, 6);
+        assertEq(index17After, 5);
     }
 
     function testIncreaseRankChangeShiftUp() public {
@@ -455,9 +471,9 @@ contract TestHeapOrdering is DSTest {
 
         update(accounts[17], 20 - 17, 40);
 
-        uint256 rank17After = heap.ranks[accounts[17]];
+        uint256 index17After = heap.indexes[accounts[17]];
 
-        assertEq(rank17After, 1);
+        assertEq(index17After, 0);
     }
 
     function testRemoveLast() public {
@@ -508,12 +524,12 @@ contract TestHeapOrdering is DSTest {
         update(accounts[1], 0, 30);
         update(accounts[2], 0, 20);
 
-        // Insert does a swap with the same ranks.
+        // Insert does a swap with the same index.
         update(accounts[3], 0, 10);
-        assertEq(heap.ranks[accounts[0]], 1);
-        assertEq(heap.ranks[accounts[1]], 2);
-        assertEq(heap.ranks[accounts[2]], 3);
-        assertEq(heap.ranks[accounts[3]], 4);
+        assertEq(heap.indexes[accounts[0]], 0);
+        assertEq(heap.indexes[accounts[1]], 1);
+        assertEq(heap.indexes[accounts[2]], 2);
+        assertEq(heap.indexes[accounts[3]], 3);
     }
 
     function testIncreaseAndRemoveNoSwap() public {
@@ -523,18 +539,18 @@ contract TestHeapOrdering is DSTest {
         update(accounts[2], 0, 40);
         update(accounts[3], 0, 30);
 
-        // Increase does a swap with the same ranks.
+        // Increase does a swap with the same index.
         update(accounts[2], 40, 45);
-        assertEq(heap.ranks[accounts[0]], 1);
-        assertEq(heap.ranks[accounts[1]], 2);
-        assertEq(heap.ranks[accounts[2]], 3);
-        assertEq(heap.ranks[accounts[3]], 4);
+        assertEq(heap.indexes[accounts[0]], 0);
+        assertEq(heap.indexes[accounts[1]], 1);
+        assertEq(heap.indexes[accounts[2]], 2);
+        assertEq(heap.indexes[accounts[3]], 3);
 
-        // Remove does a swap with the same ranks.
+        // Remove does a swap with the same index.
         update(accounts[3], 30, 0);
-        assertEq(heap.ranks[accounts[0]], 1);
-        assertEq(heap.ranks[accounts[1]], 2);
-        assertEq(heap.ranks[accounts[2]], 3);
+        assertEq(heap.indexes[accounts[0]], 0);
+        assertEq(heap.indexes[accounts[1]], 1);
+        assertEq(heap.indexes[accounts[2]], 2);
     }
 
     function testOverflowNewValue() public {

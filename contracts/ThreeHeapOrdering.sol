@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GNU AGPLv3
 pragma solidity ^0.8.0;
 
-library TriHeapOrdering {
+library ThreeHeapOrdering {
     struct Account {
         address id; // The address of the account.
         uint256 value; // The value of the account.

@@ -271,4 +271,71 @@ abstract contract CommonHeapOrdering is DSTest {
         assertLt(sizeAfter, sizeBefore);
         assertEq(heap.length(), 2);
     }
+
+    function testShouldInsertAccountsAllSorted() public {
+        for (uint256 i = 0; i < accounts.length; i++) {
+            update(accounts[i], 0, NB_ACCOUNTS - i);
+        }
+
+        assertEq(heap.length(), NB_ACCOUNTS);
+        assertEq(heap.getHead(), accounts[0]);
+        assertEq(heap.getTail(), accounts[accounts.length - 1]);
+
+        address nextAccount = accounts[0];
+        for (uint256 i = 0; i < accounts.length - 1; i++) {
+            nextAccount = heap.getNext(nextAccount);
+            assertEq(nextAccount, accounts[i + 1]);
+        }
+
+        address prevAccount = accounts[accounts.length - 1];
+        for (uint256 i = 0; i < accounts.length - 1; i++) {
+            prevAccount = heap.getPrev(prevAccount);
+            assertEq(prevAccount, accounts[accounts.length - i - 2]);
+        }
+    }
+
+    function testInsertLast() public {
+        for (uint256 i; i < 10; i++) update(accounts[i], 0, NB_ACCOUNTS - i);
+
+        for (uint256 i = 10; i < 15; i++) update(accounts[i], 0, i - 9);
+
+        for (uint256 i = 10; i < 15; i++) assertLe(heap.accountsValue(i), 10);
+    }
+
+    function testDecreaseRankChanges() public {
+        for (uint256 i = 0; i < 16; i++) update(accounts[i], 0, 20 - i);
+
+        uint256 index0Before = heap.indexes(accounts[0]);
+
+        update(accounts[0], 20, 2);
+
+        uint256 index0After = heap.indexes(accounts[0]);
+
+        assertGt(index0After, index0Before);
+    }
+
+    function testIncreaseRankChanges() public {
+        for (uint256 i = 0; i < 20; i++) update(accounts[i], 0, 20 - i);
+
+        uint256 index17Before = heap.indexes(accounts[17]);
+
+        update(accounts[17], 20 - 17, 21);
+
+        uint256 index17After = heap.indexes(accounts[17]);
+
+        assertLt(index17After, index17Before);
+    }
+
+    function testInsertNoSwap() public {
+        update(accounts[0], 0, 40);
+        update(accounts[1], 0, 30);
+        update(accounts[2], 0, 20);
+
+        // Insert does a swap with the same index.
+        update(accounts[3], 0, 10);
+        assertEq(heap.indexes(accounts[0]), 0);
+        assertEq(heap.indexes(accounts[1]), 1);
+        assertEq(heap.indexes(accounts[2]), 2);
+        assertEq(heap.indexes(accounts[3]), 3);
+    }
 }

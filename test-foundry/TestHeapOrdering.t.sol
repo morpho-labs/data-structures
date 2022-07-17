@@ -73,7 +73,7 @@ contract TestHeapOrdering is CommonHeapOrdering {
         update(accounts[4], 0, 50);
         update(accounts[5], 0, 60);
 
-        MAX_SORTED_USERS = 2;
+        MAX_SORTED_USERS = 3;
 
         update(accounts[5], 60, 25);
         assertEq(heap.size(), 1);
@@ -181,55 +181,6 @@ contract TestHeapOrdering is CommonHeapOrdering {
         assertEq(heap.accountsValue(5), 10);
     }
 
-    function testSouldInsertSorted() public {
-        update(accounts[0], 0, 1);
-        update(accounts[1], 0, 2);
-        update(accounts[2], 0, 3);
-        update(accounts[3], 0, 4);
-        update(accounts[4], 0, 5);
-        update(accounts[5], 0, 6);
-        update(accounts[6], 0, 7);
-
-        assertEq(heap.accountsValue(0), 7);
-        assertEq(heap.accountsValue(1), 4);
-        assertEq(heap.accountsValue(2), 6);
-        assertEq(heap.accountsValue(3), 1);
-        assertEq(heap.accountsValue(4), 3);
-        assertEq(heap.accountsValue(5), 2);
-        assertEq(heap.accountsValue(6), 5);
-    }
-
-    function testShouldInsertAccountsAllSorted() public {
-        for (uint256 i = 0; i < accounts.length; i++) {
-            update(accounts[i], 0, NB_ACCOUNTS - i);
-        }
-
-        assertEq(heap.size(), NB_ACCOUNTS / 2);
-        assertEq(heap.length(), NB_ACCOUNTS);
-        assertEq(heap.getHead(), accounts[0]);
-        assertEq(heap.getTail(), accounts[accounts.length - 1]);
-
-        address nextAccount = accounts[0];
-        for (uint256 i = 0; i < accounts.length - 1; i++) {
-            nextAccount = heap.getNext(nextAccount);
-            assertEq(nextAccount, accounts[i + 1]);
-        }
-
-        address prevAccount = accounts[accounts.length - 1];
-        for (uint256 i = 0; i < accounts.length - 1; i++) {
-            prevAccount = heap.getPrev(prevAccount);
-            assertEq(prevAccount, accounts[accounts.length - i - 2]);
-        }
-    }
-
-    function testInsertLast() public {
-        for (uint256 i; i < 10; i++) update(accounts[i], 0, NB_ACCOUNTS - i);
-
-        for (uint256 i = 10; i < 15; i++) update(accounts[i], 0, i - 9);
-
-        for (uint256 i = 10; i < 15; i++) assertLe(heap.accountsValue(i), 10);
-    }
-
     function testInsertWrap() public {
         MAX_SORTED_USERS = 20;
         for (uint256 i = 0; i < 20; i++) update(accounts[i], 0, NB_ACCOUNTS - i);
@@ -239,56 +190,28 @@ contract TestHeapOrdering is CommonHeapOrdering {
         assertEq(heap.accountsValue(10), 1);
     }
 
-    function testDecreaseRankChanges() public {
-        MAX_SORTED_USERS = 4;
-        for (uint256 i = 0; i < 16; i++) update(accounts[i], 0, 20 - i);
-
-        uint256 index5Before = heap.indexes(accounts[5]);
-        uint256 index0Before = heap.indexes(accounts[0]);
-
-        update(accounts[5], 15, 1);
-
-        uint256 index5After = heap.indexes(accounts[5]);
-
-        assertEq(index5Before, index5After);
-
-        update(accounts[0], 20, 2);
-
-        uint256 index0After = heap.indexes(accounts[0]);
-
-        assertGt(index0After, index0Before);
-    }
-
-    function testIncreaseRankChange() public {
-        for (uint256 i = 0; i < 20; i++) update(accounts[i], 0, 20 - i);
-
-        MAX_SORTED_USERS = 10;
-
-        update(accounts[17], 20 - 17, 5);
-
-        uint256 index17After = heap.indexes(accounts[17]);
-
-        assertEq(index17After, 5);
-    }
-
-    function testIncreaseRankChangeShiftUp() public {
-        for (uint256 i = 0; i < 20; i++) update(accounts[i], 0, 20 - i);
-
-        MAX_SORTED_USERS = 10;
-
-        update(accounts[17], 20 - 17, 40);
-
-        uint256 index17After = heap.indexes(accounts[17]);
-
-        assertEq(index17After, 0);
-    }
-
     function testRemoveShiftDown() public {
-        for (uint256 i = 0; i < 20; i++) update(accounts[i], 0, NB_ACCOUNTS - i);
+        update(accounts[0], 0, 40);
+        update(accounts[1], 0, 10);
+        update(accounts[2], 0, 30);
+        update(accounts[3], 0, 8);
+        update(accounts[4], 0, 7);
+        update(accounts[5], 0, 2);
 
-        update(accounts[5], NB_ACCOUNTS - 5, 0);
+        assertEq(heap.accountsValue(0), 40);
+        assertEq(heap.accountsValue(1), 10);
+        assertEq(heap.accountsValue(2), 30);
+        assertEq(heap.accountsValue(3), 8);
+        assertEq(heap.accountsValue(4), 7);
+        assertEq(heap.accountsValue(5), 2);
 
-        assertEq(heap.accountsValue(5), NB_ACCOUNTS - 2 * (5 + 1) + 1);
+        update(accounts[1], 10, 0);
+
+        assertEq(heap.accountsValue(0), 40);
+        assertEq(heap.accountsValue(1), 8);
+        assertEq(heap.accountsValue(2), 30);
+        assertEq(heap.accountsValue(3), 2);
+        assertEq(heap.accountsValue(4), 7);
     }
 
     function testRemoveShiftUp() public {
@@ -306,22 +229,13 @@ contract TestHeapOrdering is CommonHeapOrdering {
         assertEq(heap.accountsValue(4), 7);
         assertEq(heap.accountsValue(5), 25);
 
-        update(accounts[3], 10, 0);
+        update(accounts[3], 8, 0);
 
+        assertEq(heap.accountsValue(0), 40);
         assertEq(heap.accountsValue(1), 25);
-    }
-
-    function testInsertNoSwap() public {
-        update(accounts[0], 0, 40);
-        update(accounts[1], 0, 30);
-        update(accounts[2], 0, 20);
-
-        // Insert does a swap with the same index.
-        update(accounts[3], 0, 10);
-        assertEq(heap.indexes(accounts[0]), 0);
-        assertEq(heap.indexes(accounts[1]), 1);
-        assertEq(heap.indexes(accounts[2]), 2);
-        assertEq(heap.indexes(accounts[3]), 3);
+        assertEq(heap.accountsValue(2), 30);
+        assertEq(heap.accountsValue(3), 10);
+        assertEq(heap.accountsValue(4), 7);
     }
 
     function testIncreaseAndRemoveNoSwap() public {

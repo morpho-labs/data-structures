@@ -109,76 +109,29 @@ library ThreeHeapOrdering {
         uint256 _index
     ) private {
         uint256 size = _heap.size;
-        uint256 childIndex = _index * 3 + 1;
-
-        Account memory firstChildAccount;
-        Account memory secondChildAccount;
-        Account memory thirdChildAccount;
+        Account memory targetAccount = accountToShift;
+        uint256 targetIndex = _index;
+        Account memory nextAccount;
+        uint256 nextIndex = _index * 3;
+        uint256 rightChildIndex;
 
         for (;;) {
-            // TODO: simplifies this but make sure that doing so does not cost too much
-            if (childIndex + 2 < size) {
-                // three children
-                firstChildAccount = _heap.accounts[childIndex];
-                secondChildAccount = _heap.accounts[childIndex + 1];
-                thirdChildAccount = _heap.accounts[childIndex + 2];
-
-                if (thirdChildAccount.value > secondChildAccount.value) {
-                    if (thirdChildAccount.value > firstChildAccount.value) {
-                        // 3
-                        if (thirdChildAccount.value > accountToShift.value) {
-                            setAccount(_heap, _index, thirdChildAccount);
-                            childIndex += 2;
-                        } else break;
-                    } else {
-                        // 1
-                        if (firstChildAccount.value > accountToShift.value) {
-                            setAccount(_heap, _index, firstChildAccount);
-                        } else break;
-                    }
-                } else {
-                    if (secondChildAccount.value > firstChildAccount.value) {
-                        // 2
-                        if (secondChildAccount.value > accountToShift.value) {
-                            setAccount(_heap, _index, secondChildAccount);
-                            childIndex++;
-                        } else break;
-                    } else {
-                        // 1
-                        if (firstChildAccount.value > accountToShift.value) {
-                            setAccount(_heap, _index, firstChildAccount);
-                        } else break;
-                    }
+            rightChildIndex = nextIndex + 3;
+            while (nextIndex++ <= rightChildIndex && nextIndex < size) {
+                nextAccount = _heap.accounts[nextIndex];
+                if (nextAccount.value > targetAccount.value) {
+                    targetAccount = nextAccount;
+                    targetIndex = nextIndex;
                 }
-            } else if (childIndex + 1 < size) {
-                // two children
-                firstChildAccount = _heap.accounts[childIndex];
-                secondChildAccount = _heap.accounts[childIndex + 1];
+            }
 
-                if (secondChildAccount.value > firstChildAccount.value) {
-                    // 2
-                    if (secondChildAccount.value > accountToShift.value) {
-                        setAccount(_heap, _index, secondChildAccount);
-                        childIndex++;
-                    } else break;
-                } else {
-                    // 1
-                    if (firstChildAccount.value > accountToShift.value) {
-                        setAccount(_heap, _index, firstChildAccount);
-                    } else break;
-                }
-            } else if (childIndex < size) {
-                // one child
-                firstChildAccount = _heap.accounts[childIndex];
-                if (firstChildAccount.value > accountToShift.value) {
-                    setAccount(_heap, _index, firstChildAccount);
-                    _index = childIndex;
-                }
-                break;
-            } else break; // no child
+            if (targetIndex == _index) break;
 
-            _index = childIndex;
-            childIndex = childIndex * 3 + 1;
+            setAccount(_heap, _index, targetAccount);
+
+            targetAccount = accountToShift;
+            _index = targetIndex;
+            nextIndex = _index * 3;
         }
         setAccount(_heap, _index, accountToShift);
     }

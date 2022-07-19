@@ -2,10 +2,6 @@
 pragma solidity ^0.8.0;
 
 interface ICommonHeapOrdering {
-    function accountsValue(uint256 _index) external returns (uint256);
-
-    function indexes(address _id) external returns (uint256);
-
     function update(
         address _id,
         uint256 _formerValue,
@@ -13,17 +9,21 @@ interface ICommonHeapOrdering {
         uint256 _maxSortedUsers
     ) external;
 
-    function length() external returns (uint256);
+    function accountsValue(uint256 _index) external view returns (uint256);
 
-    function size() external returns (uint256);
+    function indexes(address _id) external view returns (uint256);
 
-    function getValueOf(address) external returns (uint256);
+    function length() external view returns (uint256);
 
-    function getHead() external returns (address);
+    function size() external view returns (uint256);
 
-    function getTail() external returns (address);
+    function getValueOf(address) external view returns (uint256);
 
-    function getPrev(address) external returns (address);
+    function getHead() external view returns (address);
 
-    function getNext(address) external returns (address);
+    function getTail() external view returns (address);
+
+    function getPrev(address) external view returns (address);
+
+    function getNext(address) external view returns (address);
 }

@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: GNU AGPLv3
 pragma solidity ^0.8.0;
 
-import "ds-test/test.sol";
+import "forge-std/Test.sol";
 import "forge-std/Vm.sol";
 import "forge-std/console.sol";
 
 import "@contracts/HeapOrdering.sol";
 import "./ICommonHeapOrdering.sol";
 
-abstract contract CommonHeapOrdering is DSTest {
+abstract contract CommonHeapOrdering is Test {
     ICommonHeapOrdering internal heap;
 
     Vm public hevm = Vm(HEVM_ADDRESS);

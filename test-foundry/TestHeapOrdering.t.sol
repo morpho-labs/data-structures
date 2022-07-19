@@ -5,60 +5,8 @@ import "ds-test/test.sol";
 import "forge-std/Vm.sol";
 import "forge-std/console.sol";
 
-import "@contracts/HeapOrdering.sol";
 import "./helpers/CommonHeapOrdering.sol";
-import "./helpers/ICommonHeapOrdering.sol";
-
-contract ConcreteHeapOrdering is ICommonHeapOrdering {
-    using HeapOrdering for HeapOrdering.HeapArray;
-
-    HeapOrdering.HeapArray internal heap;
-
-    function accountsValue(uint256 _index) external view returns (uint256) {
-        return heap.accounts[_index].value;
-    }
-
-    function indexes(address _id) external view returns (uint256) {
-        return heap.indexes[_id];
-    }
-
-    function update(
-        address _id,
-        uint256 _formerValue,
-        uint256 _newValue,
-        uint256 _maxSortedUsers
-    ) external {
-        heap.update(_id, _formerValue, _newValue, _maxSortedUsers);
-    }
-
-    function length() external view returns (uint256) {
-        return heap.length();
-    }
-
-    function size() external view returns (uint256) {
-        return heap.size;
-    }
-
-    function getValueOf(address _id) external view returns (uint256) {
-        return heap.getValueOf(_id);
-    }
-
-    function getHead() external view returns (address) {
-        return heap.getHead();
-    }
-
-    function getTail() external view returns (address) {
-        return heap.getTail();
-    }
-
-    function getPrev(address _id) external view returns (address) {
-        return heap.getPrev(_id);
-    }
-
-    function getNext(address _id) external view returns (address) {
-        return heap.getNext(_id);
-    }
-}
+import "./helpers/ConcreteHeapOrdering.sol";
 
 contract TestHeapOrdering is CommonHeapOrdering {
     constructor() {

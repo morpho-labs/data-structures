@@ -21,7 +21,7 @@ contract TestRandomHeapOrdering is TestRandomHeap {
             secondChildIndex = 2 * index + 1;
             if (firstChildIndex <= size) {
                 firstChildValue = heap.accountsValue(firstChildIndex - 1);
-                require(initialValue >= firstChildIndex, "not heap");
+                require(initialValue >= firstChildValue, "not heap");
             }
             if (secondChildIndex <= size) {
                 secondChildValue = heap.accountsValue(secondChildIndex - 1);

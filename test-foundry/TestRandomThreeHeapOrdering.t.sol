@@ -24,7 +24,7 @@ contract TestRandomThreeHeapOrdering is TestRandomHeap {
             thidChildIndex = 3 * index + 3;
             if (firstChildIndex < size) {
                 firstChildValue = heap.accountsValue(firstChildIndex);
-                require(initialValue >= firstChildIndex, "not heap");
+                require(initialValue >= firstChildValue, "not heap");
             }
             if (secondChildIndex < size) {
                 secondChildValue = heap.accountsValue(secondChildIndex);

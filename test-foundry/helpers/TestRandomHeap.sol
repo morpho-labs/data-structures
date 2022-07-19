@@ -36,7 +36,7 @@ abstract contract TestRandomHeap is Test, Random {
         heap.update(
             ids[index],
             formerValue,
-            randomUint256(formerValue + (type(uint96).max - formerValue)),
+            formerValue + randomUint256(type(uint96).max - formerValue),
             maxSortedUsers
         );
     }

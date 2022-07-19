@@ -69,10 +69,10 @@ library HeapOrdering {
 
     /// @notice Sets `_index` in the `_heap` to be `_account`.
     /// @dev The heap may lose its invariant about the order of the values stored.
-    /// @dev Only call this function with a rank within array's bounds.
+    /// @dev Only call this function with a index within array's bounds.
     /// @param _heap The heap to modify.
-    /// @param _index The rank of the account in the heap to be set.
-    /// @param _account The account to set the `_rank` to.
+    /// @param _index The index of the account in the heap to be set.
+    /// @param _account The account to set the `_index` to.
     function setAccount(
         HeapArray storage _heap,
         uint256 _index,

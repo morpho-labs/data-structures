@@ -10,21 +10,21 @@ contract TestRandomHeapOrdering is TestRandomHeap {
     }
 
     function verify2HeapStructure(uint256 size) internal view {
-        uint256 firstChildRank;
-        uint256 secondChildRank;
+        uint256 firstChildIndex;
+        uint256 secondChildIndex;
         uint256 initialValue;
         uint256 firstChildValue;
         uint256 secondChildValue;
-        for (uint256 rank = 1; rank <= size / 2; rank++) {
-            initialValue = heap.accountsValue(rank - 1);
-            firstChildRank = 2 * rank;
-            secondChildRank = 2 * rank + 1;
-            if (firstChildRank <= size) {
-                firstChildValue = heap.accountsValue(firstChildRank - 1);
-                require(initialValue >= firstChildRank, "not heap");
+        for (uint256 index = 1; index <= size / 2; index++) {
+            initialValue = heap.accountsValue(index - 1);
+            firstChildIndex = 2 * index;
+            secondChildIndex = 2 * index + 1;
+            if (firstChildIndex <= size) {
+                firstChildValue = heap.accountsValue(firstChildIndex - 1);
+                require(initialValue >= firstChildIndex, "not heap");
             }
-            if (secondChildRank <= size) {
-                secondChildValue = heap.accountsValue(secondChildRank - 1);
+            if (secondChildIndex <= size) {
+                secondChildValue = heap.accountsValue(secondChildIndex - 1);
                 require(initialValue >= secondChildValue, "not heap");
             }
         }

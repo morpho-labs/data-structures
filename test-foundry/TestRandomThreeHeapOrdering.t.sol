@@ -10,28 +10,28 @@ contract TestRandomThreeHeapOrdering is TestRandomHeap {
     }
 
     function verify3HeapStructure(uint256 size) internal view {
-        uint256 firstChildRank;
-        uint256 secondChildRank;
-        uint256 thidChildRank;
+        uint256 firstChildIndex;
+        uint256 secondChildIndex;
+        uint256 thidChildIndex;
         uint256 initialValue;
         uint256 firstChildValue;
         uint256 secondChildValue;
         uint256 thirdChildValue;
-        for (uint256 rank; rank < size / 3; rank++) {
-            initialValue = heap.accountsValue(rank);
-            firstChildRank = 3 * rank + 1;
-            secondChildRank = 3 * rank + 2;
-            thidChildRank = 3 * rank + 3;
-            if (firstChildRank < size) {
-                firstChildValue = heap.accountsValue(firstChildRank);
-                require(initialValue >= firstChildRank, "not heap");
+        for (uint256 index; index < size / 3; index++) {
+            initialValue = heap.accountsValue(index);
+            firstChildIndex = 3 * index + 1;
+            secondChildIndex = 3 * index + 2;
+            thidChildIndex = 3 * index + 3;
+            if (firstChildIndex < size) {
+                firstChildValue = heap.accountsValue(firstChildIndex);
+                require(initialValue >= firstChildIndex, "not heap");
             }
-            if (secondChildRank < size) {
-                secondChildValue = heap.accountsValue(secondChildRank);
+            if (secondChildIndex < size) {
+                secondChildValue = heap.accountsValue(secondChildIndex);
                 require(initialValue >= secondChildValue, "not heap");
             }
-            if (thidChildRank < size) {
-                thirdChildValue = heap.accountsValue(thidChildRank);
+            if (thidChildIndex < size) {
+                thirdChildValue = heap.accountsValue(thidChildIndex);
                 require(initialValue >= thirdChildValue, "not heap");
             }
         }

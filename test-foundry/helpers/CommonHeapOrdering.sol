@@ -302,7 +302,7 @@ abstract contract CommonHeapOrdering is Test {
         for (uint256 i = 10; i < 15; i++) assertLe(heap.accountsValue(i), 10);
     }
 
-    function testDecreaseRankChanges() public {
+    function testDecreaseIndexChanges() public {
         for (uint256 i = 0; i < 16; i++) update(accounts[i], 0, 20 - i);
 
         uint256 index0Before = heap.indexes(accounts[0]);
@@ -314,7 +314,7 @@ abstract contract CommonHeapOrdering is Test {
         assertGt(index0After, index0Before);
     }
 
-    function testIncreaseRankChanges() public {
+    function testIncreaseIndexChanges() public {
         for (uint256 i = 0; i < 20; i++) update(accounts[i], 0, 20 - i);
 
         uint256 index17Before = heap.indexes(accounts[17]);

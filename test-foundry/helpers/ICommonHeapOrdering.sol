@@ -26,4 +26,6 @@ interface ICommonHeapOrdering {
     function getPrev(address) external view returns (address);
 
     function getNext(address) external view returns (address);
+
+    function verifyStructure() external view;
 }

@@ -53,4 +53,27 @@ contract ConcreteHeapOrdering is ICommonHeapOrdering {
     function getNext(address _id) external view returns (address) {
         return heap.getNext(_id);
     }
+
+    function verifyStructure() external view {
+        uint256 firstChildIndex;
+        uint256 secondChildIndex;
+        uint256 initialValue;
+        uint256 firstChildValue;
+        uint256 secondChildValue;
+        uint256 heapSize = heap.size;
+
+        for (uint256 index = 0; index <= heapSize / 2; index++) {
+            initialValue = heap.accounts[index].value;
+            firstChildIndex = 2 * index + 1;
+            secondChildIndex = 2 * index + 2;
+            if (firstChildIndex < heapSize) {
+                firstChildValue = heap.accounts[firstChildIndex].value;
+                require(initialValue >= firstChildValue, "2-heap structure is not verified.");
+            }
+            if (secondChildIndex < heapSize) {
+                secondChildValue = heap.accounts[secondChildIndex].value;
+                require(initialValue >= secondChildValue, "2-heap structure is not verified.");
+            }
+        }
+    }
 }

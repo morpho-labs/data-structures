@@ -16,7 +16,10 @@ abstract contract TestRandomHeap is Test, Random {
     function insert() public {
         address id = randomAddress();
         ids.push(id);
-        heap.update(id, 0, randomUint256(type(uint96).max), maxSortedUsers);
+        uint256 rdm = randomUint256(type(uint96).max);
+        if (rdm == 0) revert("Random gave back 0.");
+
+        heap.update(id, 0, rdm, maxSortedUsers);
     }
 
     function remove() public {
@@ -24,6 +27,7 @@ abstract contract TestRandomHeap is Test, Random {
         address toRemove = ids[index];
 
         heap.update(toRemove, heap.getValueOf(toRemove), 0, maxSortedUsers);
+
         ids[index] = ids[ids.length - 1];
         ids.pop();
     }
@@ -33,12 +37,10 @@ abstract contract TestRandomHeap is Test, Random {
         address toUpdate = ids[index];
         uint256 formerValue = heap.getValueOf(toUpdate);
 
-        heap.update(
-            ids[index],
-            formerValue,
-            formerValue + randomUint256(type(uint96).max - formerValue),
-            maxSortedUsers
-        );
+        uint256 rdm = formerValue + randomUint256(type(uint96).max - formerValue);
+        if (rdm == 0) revert("Random gave back 0.");
+
+        heap.update(ids[index], formerValue, rdm, maxSortedUsers);
     }
 
     function decrease() public {
@@ -46,6 +48,40 @@ abstract contract TestRandomHeap is Test, Random {
         address toUpdate = ids[index];
         uint256 formerValue = heap.getValueOf(toUpdate);
 
-        heap.update(ids[index], formerValue, randomUint256(formerValue), maxSortedUsers);
+        uint256 rdm = randomUint256(formerValue);
+        if (rdm == 0) revert("Random gave back 0.");
+
+        heap.update(ids[index], formerValue, rdm, maxSortedUsers);
+    }
+
+    function removeHead() public returns (uint256 value) {
+        address head = heap.getHead();
+        if (head == address(0)) return 0;
+        else {
+            value = heap.getValueOf(head);
+            heap.update(head, value, 0, maxSortedUsers);
+        }
+    }
+
+    // Should give elements in decreasing order if maxSortedUsers is +infinity.
+    function testFullHeapSort() public {
+        maxSortedUsers = n;
+        for (uint256 i; i < n; i++) {
+            if (ids.length == 0) insert();
+            else {
+                uint256 r = randomUint256(5);
+                if (r < 2) insert();
+                else if (r == 2) remove();
+                else if (r == 3) increase();
+                else decrease();
+            }
+        }
+
+        uint256 lastValue = type(uint256).max;
+        uint256 newValue;
+        while ((newValue = removeHead()) != 0) {
+            require(newValue <= lastValue, "Elements are not given back in a decreasing order.");
+            lastValue = newValue;
+        }
     }
 }

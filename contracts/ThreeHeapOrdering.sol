@@ -122,7 +122,7 @@ library ThreeHeapOrdering {
 
         for (;;) {
             rightChildIndex = nextIndex + 3;
-            while (nextIndex++ <= rightChildIndex && nextIndex < size) {
+            while (++nextIndex <= rightChildIndex && nextIndex < size) {
                 nextAccount = _heap.accounts[nextIndex];
                 if (nextAccount.value > targetAccount.value) {
                     targetAccount = nextAccount;

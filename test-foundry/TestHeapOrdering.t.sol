@@ -206,14 +206,4 @@ contract TestHeapOrdering is CommonHeapOrdering {
         assertEq(heap.indexes(accounts[1]), 1);
         assertEq(heap.indexes(accounts[2]), 2);
     }
-
-    function testOverflowNewValue() public {
-        hevm.expectRevert("SafeCast: value doesn't fit in 96 bits");
-        update(accounts[0], 0, uint256(type(uint128).max));
-    }
-
-    function testOverflowFormerValue() public {
-        hevm.expectRevert("SafeCast: value doesn't fit in 96 bits");
-        update(accounts[0], uint256(type(uint128).max), 0);
-    }
 }

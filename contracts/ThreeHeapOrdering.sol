@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: GNU AGPLv3
 pragma solidity ^0.8.0;
 
+import "@openzeppelin/contracts/utils/math/SafeCast.sol";
+
 library ThreeHeapOrdering {
     struct Account {
         address id; // The address of the account.
-        uint256 value; // The value of the account.
+        uint96 value; // The value of the account.
     }
 
     struct HeapArray {
@@ -38,15 +40,18 @@ library ThreeHeapOrdering {
         uint256 _newValue,
         uint256 _maxSortedUsers
     ) internal {
+        uint96 formerValue = SafeCast.toUint96(_formerValue);
+        uint96 newValue = SafeCast.toUint96(_newValue);
+
         uint256 size = _heap.size;
         uint256 newSize = computeSize(size, _maxSortedUsers);
         if (size != newSize) _heap.size = newSize;
 
-        if (_formerValue != _newValue) {
-            if (_newValue == 0) remove(_heap, _id, _formerValue);
-            else if (_formerValue == 0) insert(_heap, _id, _newValue, _maxSortedUsers);
-            else if (_formerValue < _newValue) increase(_heap, _id, _newValue, _maxSortedUsers);
-            else decrease(_heap, _id, _newValue);
+        if (formerValue != newValue) {
+            if (newValue == 0) remove(_heap, _id, formerValue);
+            else if (formerValue == 0) insert(_heap, _id, newValue, _maxSortedUsers);
+            else if (formerValue < newValue) increase(_heap, _id, newValue, _maxSortedUsers);
+            else decrease(_heap, _id, newValue);
         }
     }
 
@@ -146,7 +151,7 @@ library ThreeHeapOrdering {
     function insert(
         HeapArray storage _heap,
         address _id,
-        uint256 _value,
+        uint96 _value,
         uint256 _maxSortedUsers
     ) private {
         // `_heap` cannot contain the 0 address.
@@ -174,7 +179,7 @@ library ThreeHeapOrdering {
     function decrease(
         HeapArray storage _heap,
         address _id,
-        uint256 _newValue
+        uint96 _newValue
     ) private {
         uint256 index = _heap.indexes[_id];
 
@@ -191,7 +196,7 @@ library ThreeHeapOrdering {
     function increase(
         HeapArray storage _heap,
         address _id,
-        uint256 _newValue,
+        uint96 _newValue,
         uint256 _maxSortedUsers
     ) private {
         uint256 index = _heap.indexes[_id];
@@ -215,7 +220,7 @@ library ThreeHeapOrdering {
     function remove(
         HeapArray storage _heap,
         address _id,
-        uint256 _removedValue
+        uint96 _removedValue
     ) private {
         uint256 index = _heap.indexes[_id];
         delete _heap.indexes[_id];

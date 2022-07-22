@@ -83,38 +83,40 @@ library ThreeHeapOrdering {
     }
 
     /// @notice Moves an account up the heap until its value is smaller than the one of its parent.
-    /// @dev This functions restores the invariant about the order of the values stored when the account at `_index` is the only one with value greater than what it should be.
+    /// @dev This functions restores the invariant about the order of the values stored when the account to move is the only one with value greater than what it should be.
     /// @param _heap The heap to modify.
+    /// @param _accountToShift The account to move.
     /// @param _index The index of the account to move.
     function shiftUp(
         HeapArray storage _heap,
-        Account memory accountToShift,
+        Account memory _accountToShift,
         uint256 _index
     ) private {
         Account memory parentAccount;
         uint256 parentIndex;
         while (
             _index > ROOT &&
-            accountToShift.value >
+            _accountToShift.value >
             (parentAccount = _heap.accounts[parentIndex = (_index - 1) / 3]).value
         ) {
             setAccount(_heap, _index, parentAccount);
             _index = parentIndex;
         }
-        setAccount(_heap, _index, accountToShift);
+        setAccount(_heap, _index, _accountToShift);
     }
 
     /// @notice Moves an account down the heap until its value is greater than the ones of its children.
-    /// @dev This functions restores the invariant about the order of the values stored when the account at `_index` is the only one with value smaller than what it should be.
+    /// @dev This functions restores the invariant about the order of the values stored when the account to move is the only one with value smaller than what it should be.
     /// @param _heap The heap to modify.
+    /// @param _accountToShift The account to move.
     /// @param _index The index of the account to move.
     function shiftDown(
         HeapArray storage _heap,
-        Account memory accountToShift,
+        Account memory _accountToShift,
         uint256 _index
     ) private {
         uint256 size = _heap.size;
-        Account memory targetAccount = accountToShift;
+        Account memory targetAccount = _accountToShift;
         uint256 targetIndex = _index;
         Account memory nextAccount;
         uint256 nextIndex = _index * 3;
@@ -134,11 +136,11 @@ library ThreeHeapOrdering {
 
             setAccount(_heap, _index, targetAccount);
 
-            targetAccount = accountToShift;
+            targetAccount = _accountToShift;
             _index = targetIndex;
             nextIndex = _index * 3;
         }
-        setAccount(_heap, _index, accountToShift);
+        setAccount(_heap, _index, _accountToShift);
     }
 
     /// @notice Inserts an account in the `_heap`.

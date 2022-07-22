@@ -591,9 +591,9 @@
     "@types/sinon-chai" "^3.2.3"
     "@types/web3" "1.0.19"
 
-"@openzeppelin/contracts@^4.7.0":
+"@openzeppelin/contracts@4.7.0":
   version "4.7.0"
-  resolved "https://registry.npmjs.org/@openzeppelin/contracts/-/contracts-4.7.0.tgz"
+  resolved "https://registry.yarnpkg.com/@openzeppelin/contracts/-/contracts-4.7.0.tgz#3092d70ea60e3d1835466266b1d68ad47035a2d5"
   integrity sha512-52Qb+A1DdOss8QvJrijYYPSf32GUg2pGaG/yCxtaA3cu4jduouTdg4XZSMLW9op54m1jH7J8hoajhHKOPsoJFw==
 
 "@resolver-engine/core@^0.3.3":

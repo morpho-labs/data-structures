@@ -1,12 +1,12 @@
-// SPDX-License-Identifier: GNU AGPLv3
+// SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
 import "./helpers/TestRandomHeap.sol";
-import "./helpers/ConcreteHeapOrdering.sol";
+import "./helpers/ConcreteThreeHeapOrdering.sol";
 
-contract TestRandomHeapOrdering is TestRandomHeap {
+contract TestRandomThreeHeapOrdering is TestRandomHeap {
     constructor() {
-        heap = new ConcreteHeapOrdering();
+        heap = new ConcreteThreeHeapOrdering();
     }
 
     function testHeapStructure() public {
@@ -26,7 +26,7 @@ contract TestRandomHeapOrdering is TestRandomHeap {
         }
 
         uint256 size = heap.size();
-        require(maxSortedUsers / 2 <= size, "size too low");
+        require(maxSortedUsers / 3 <= size, "size too low");
         require(size < maxSortedUsers, "size too high");
         heap.verifyStructure();
     }

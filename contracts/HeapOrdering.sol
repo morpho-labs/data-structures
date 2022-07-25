@@ -153,17 +153,15 @@ library HeapOrdering {
         uint256 size = _heap.size;
         Account memory accountToShift = getAccount(_heap, _rank);
         uint256 valueToShift = accountToShift.value;
-        Account memory childToSwap;
-        Account memory rightChild;
         uint256 childRank = _rank << 1;
         // At this point, childRank (resp. childRank+1) is the rank of the left (resp. right) child.
 
         while (childRank <= size) {
-            childToSwap = getAccount(_heap, childRank);
+            Account memory childToSwap = getAccount(_heap, childRank);
 
             // Find the child with largest value.
             if (childRank < size) {
-                rightChild = getAccount(_heap, childRank + 1);
+                Account memory rightChild = getAccount(_heap, childRank + 1);
                 if (rightChild.value > childToSwap.value) {
                     unchecked {
                         ++childRank; // This cannot overflow because childRank < size.
@@ -299,7 +297,7 @@ library HeapOrdering {
     /// @param _heap The heap to get the head.
     /// @return The address of the head.
     function getHead(HeapArray storage _heap) internal view returns (address) {
-        if (_heap.accounts.length > 0) return getAccount(_heap, 1).id;
+        if (_heap.accounts.length > 0) return getAccount(_heap, ROOT).id;
         else return address(0);
     }
 

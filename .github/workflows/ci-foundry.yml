@@ -1,0 +1,44 @@
+name: Foundry CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: "16"
+
+      - name: Node dependencies cache
+        uses: actions/cache@v3
+        with:
+          path: "node_modules"
+          key: yarn-${{ hashFiles('yarn.lock') }}
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Install Foundry
+        uses: onbjerg/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Foundry compilation cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            out
+            cache
+          key: compilation-${{ github.base_ref || github.ref_name }}
+
+      - name: Run tests
+        run: make test
